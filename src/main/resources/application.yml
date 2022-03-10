@@ -1,0 +1,35 @@
+server:
+  error:
+    include-binding-errors: always
+    include-stacktrace: never
+    include-message: always
+  port: 8080
+  servlet:
+    context-path: /car-rental/api
+
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    password: 1209
+    username: postgres
+    url: jdbc:postgresql://localhost:5431/lecture
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        jdbc:
+          lob:
+            non_contextual_creation: true
+    show-sql: true
+  servlet:
+    multipart:
+      max-file-size: 2MB
+      max-request-size: 2MB
+
+backendapi:
+  app:
+    jwtSecret: carRentalSecretKey
+    jwtExpirationMs: 86400000
