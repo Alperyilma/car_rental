@@ -51,20 +51,29 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     public void configure(WebSecurity web) throws Exception {
-        web.ignoring().antMatchers();
+        web.ignoring().antMatchers("/configuration/**");
     }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.cors().and().csrf().disable()
-                .exceptionHandling().authenticationEntryPoint(authEntryPointJwt)
+                .exceptionHandling()
+                .authenticationEntryPoint(authEntryPointJwt)
                 .and()
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
-                .authorizeRequests().antMatchers("/car-rental/api/user/**")
+                .authorizeRequests()
+                .antMatchers("/car-rental/api/user/**")
                 .permitAll()
-                .anyRequest().authenticated();
+                .anyRequest()
+                .authenticated();
+
+        http.cors().and().csrf().disable().exceptionHandling().authenticationEntryPoint(authEntryPointJwt).and()
+                        .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
+                        .antMatcher("/car-rental/api/login")
+                        .antMatcher("/car-rental/api/register");
+
         http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
     }
 }

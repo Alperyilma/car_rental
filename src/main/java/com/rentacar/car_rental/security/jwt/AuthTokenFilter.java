@@ -1,5 +1,7 @@
 package com.rentacar.car_rental.security.jwt;
 
+import com.rentacar.car_rental.domain.User;
+import com.rentacar.car_rental.repository.UserRepository;
 import com.rentacar.car_rental.security.service.UserDetailsServiceImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,12 +19,15 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.security.Security;
+import java.util.Optional;
 
 @Component
 public class AuthTokenFilter extends OncePerRequestFilter {
 
     @Autowired
     private JwtUtils jwtUtils;
+
+    private UserRepository userRepository;
 
     private UserDetailsServiceImpl userDetailsService;
 
@@ -34,10 +39,11 @@ public class AuthTokenFilter extends OncePerRequestFilter {
         try{
             String jwt = parseJwt(request);
             if (jwt != null && jwtUtils.validateJwtToken(jwt)){
-                String username = jwtUtils.getUserNameFromJwtToken(jwt);
-                request.setAttribute("username", username);
+                Long id = jwtUtils.getIdFromJwtToken(jwt);
+                request.setAttribute("id", id);
+                Optional<User> user = userRepository.findById(id);
 
-                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                UserDetails userDetails = userDetailsService.loadUserByUsername(user.get().getEmail());
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                 SecurityContextHolder.getContext().setAuthentication(authentication);
