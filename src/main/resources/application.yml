@@ -1,18 +1,18 @@
 server:
   error:
+    include-message: always
     include-binding-errors: always
     include-stacktrace: never
-    include-message: always
+  port: 8080
   servlet:
     context-path: /car-rental/api
-  port: 8080
 
 spring:
   datasource:
-    driver-class-name: org.postgresql.Driver
     password: 1209
-    username: postgres
     url: jdbc:postgresql://localhost:5431/lecture
+    username: postgres
+    driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
       ddl-auto: update
@@ -26,8 +26,8 @@ spring:
     show-sql: true
   servlet:
     multipart:
-      max-file-size: 2MB
       max-request-size: 2MB
+      max-file-size: 2MB
 
 backendapi:
   app:

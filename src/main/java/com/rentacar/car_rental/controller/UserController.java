@@ -1,6 +1,7 @@
 package com.rentacar.car_rental.controller;
 
 import com.rentacar.car_rental.domain.User;
+import com.rentacar.car_rental.dto.AdminDTO;
 import com.rentacar.car_rental.dto.UserDTO;
 import com.rentacar.car_rental.projection.ProjectUser;
 import com.rentacar.car_rental.security.jwt.JwtUtils;
@@ -11,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.config.annotation.web.configurers.UrlAuthorizationConfigurer;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -88,7 +90,7 @@ public class UserController {
         return new ResponseEntity<>(map, HttpStatus.OK);
     }
 
-    @PostMapping("/user")
+    @PutMapping("/user")
     @PreAuthorize("hasRole('CUSTOMER') or hasRole('ADMIN')")
     public ResponseEntity<Map<String, Boolean>> updateUser(HttpServletRequest request,
                                                            @Valid @RequestBody UserDTO userDTO){
@@ -101,8 +103,43 @@ public class UserController {
         return new ResponseEntity<>(map, HttpStatus.OK);
     }
 
+    @PutMapping("user/{id}/auth")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Map<String, Boolean>> updateUserAuth(@PathVariable Long id,
+                                           @Valid @RequestBody AdminDTO adminDTO){
+        userService.updateUserAuth(id, adminDTO);
 
+        Map<String, Boolean> map = new HashMap<>();
+        map.put("success", true);
+        return new ResponseEntity<>(map, HttpStatus.OK);
+    }
 
+    @PatchMapping("/user/auth")
+    @PreAuthorize("hasRole('CUSTOMER') or hasRole('ADMIN')")
+    public ResponseEntity<Map<String, Boolean>> updatePassword(HttpServletRequest request,
+                                                               @RequestBody Map<String, Object> userMap){
+        Long id = (Long) request.getAttribute("id");
+        String newPassword = (String) userMap.get("newPassword");
+        String oldPassword = (String) userMap.get("oldPassword");
+
+        userService.updatePassword(id, newPassword, oldPassword);
+
+        Map<String, Boolean> map = new HashMap<>();
+        map.put("success", true);
+
+        return new ResponseEntity<>(map, HttpStatus.OK);
+    }
+
+    @DeleteMapping("/user/{id}/auth")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Map<String, Boolean>> deleteUser(@PathVariable Long id){
+        userService.removeById(id);
+
+        Map<String, Boolean> map = new HashMap<>();
+        map.put("success", true);
+
+        return new ResponseEntity<>(map, HttpStatus.OK);
+    }
 
 
 

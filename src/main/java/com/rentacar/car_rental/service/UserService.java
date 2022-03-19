@@ -3,6 +3,7 @@ package com.rentacar.car_rental.service;
 import com.rentacar.car_rental.domain.Role;
 import com.rentacar.car_rental.domain.User;
 import com.rentacar.car_rental.domain.enumeration.UserRole;
+import com.rentacar.car_rental.dto.AdminDTO;
 import com.rentacar.car_rental.dto.UserDTO;
 import com.rentacar.car_rental.exception.AuthException;
 import com.rentacar.car_rental.exception.BadRequestException;
@@ -90,7 +91,101 @@ public class UserService {
                 userDTO.getPhoneNumber(), userDTO.getEmail(), userDTO.getAddress(), userDTO.getZipCode());
     }
 
+    public void updatePassword(Long id, String newPassword, String oldPassword) throws BadRequestException{
+        Optional<User> user = userRepository.findById(id);
 
+        if (user.get().getBuiltin()){
+            throw new BadRequestException("You don't have permission to update password!");
+        }
+
+        if (!BCrypt.hashpw(oldPassword, user.get().getPassword()).equals(user.get().getPassword())){
+            throw new BadRequestException("Password does not match!");
+        }
+
+        String hashedPassword = passwordEncoder.encode(newPassword);
+        user.get().setPassword(hashedPassword);
+
+        userRepository.save(user.get());
+    }
+
+    public void updateUserAuth(Long id, AdminDTO adminDTO) throws BadRequestException{
+        boolean emailExist = userRepository.existsByEmail(adminDTO.getEmail());
+        Optional<User> userDetail = userRepository.findById(id);
+
+        if (userDetail.get().getBuiltin()){
+            throw new BadRequestException("You don't have permission to update user info!");
+        }
+
+        adminDTO.setBuiltin(false);
+
+        if (emailExist && !adminDTO.getEmail().equals(userDetail.get().getEmail())){
+            throw new ConflictException("Error: Email is already in use!");
+        }
+
+        if (adminDTO.getPassword() == null){
+            adminDTO.setPassword(userDetail.get().getPassword());
+        }else{
+            String encodedPassword = passwordEncoder.encode(adminDTO.getPassword());
+            adminDTO.setPassword(encodedPassword);
+        }
+
+        Set<String> userRoles = adminDTO.getRoles();
+        Set<Role> roles = addRoles(userRoles);
+
+        User user = new User(id, adminDTO.getFirstName(), adminDTO.getLastName(), adminDTO.getPassword(),
+                adminDTO.getPhoneNumber(), adminDTO.getEmail(), adminDTO.getAddress(), adminDTO.getZipCode(),
+                roles, adminDTO.getBuiltin());
+
+        userRepository.save(user);
+    }
+
+    public void removeById(Long id) throws ResourceNotFoundException{
+        User user = userRepository.findById(id).orElseThrow(()->
+                new ResourceNotFoundException(String.format("USER_NOT_FOUND_MSG",id)));
+
+        if (user.getBuiltin()){
+            throw new BadRequestException("You don't have permission to delete user!");
+        }
+
+        userRepository.deleteById(id);
+    }
+
+    public Set<Role> addRoles(Set<String> userRoles) {
+        Set<Role> roles = new HashSet<>();
+
+        if (userRoles == null){
+            Role userRole = roleRepository.findByName(UserRole.ROLE_CUSTOMER)
+                    .orElseThrow(()-> new RuntimeException("Error: Role is not found"));
+            roles.add(userRole);
+        }else {
+            userRoles.forEach(role->{
+                switch (role){
+                    case "Administrator":
+                        Role adminRole = roleRepository.findByName(UserRole.ROLE_ADMIN)
+                                .orElseThrow(() -> new RuntimeException("Error: Role is not found"));
+                        roles.add(adminRole);
+                        break;
+                    default:
+                        Role userRole = roleRepository.findByName(UserRole.ROLE_CUSTOMER)
+                                .orElseThrow(() -> new RuntimeException("Error: Role is not found"));
+                        roles.add(userRole);
+                }
+            });
+        }
+
+        return roles;
+    }
 
 
 }
+
+
+
+
+
+
+
+
+
+
+
