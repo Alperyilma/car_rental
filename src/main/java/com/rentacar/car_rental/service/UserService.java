@@ -141,7 +141,7 @@ public class UserService {
 
     public void removeById(Long id) throws ResourceNotFoundException{
         User user = userRepository.findById(id).orElseThrow(()->
-                new ResourceNotFoundException(String.format("USER_NOT_FOUND_MSG",id)));
+                new ResourceNotFoundException(String.format(USER_NOT_FOUND_MSG, id)));
 
         if (user.getBuiltin()){
             throw new BadRequestException("You don't have permission to delete user!");

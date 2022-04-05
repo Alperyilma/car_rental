@@ -64,7 +64,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 .authorizeRequests()
-                .antMatchers("/car-rental/api/user/**")
+                .antMatchers("/car-rental/api/user/**", "/car-rental/api/files/**")
                 .permitAll()
                 .anyRequest()
                 .authenticated();

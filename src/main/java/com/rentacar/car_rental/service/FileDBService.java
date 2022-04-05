@@ -21,6 +21,7 @@ public class FileDBService {
         String fileName = StringUtils.cleanPath(Objects.requireNonNull(file.getOriginalFilename()));
 
         FileDB fileDB = new FileDB(fileName, file.getContentType(), file.getBytes());
+
         fileDBRepository.save(fileDB);
 
         return fileDB;
